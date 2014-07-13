@@ -3,6 +3,7 @@
 // @namespace http://keyboardfire.com/
 // @license MIT
 // @description Quick SE comments for quick SE people
+// @version 1.0.1
 // @match *://*.stackexchange.com/*
 // @match *://*.stackoverflow.com/*
 // @match *://*.superuser.com/*
@@ -20,7 +21,7 @@ if (!localStorage.__stackexchange_quickcomment_data) {
 		commands: [
 			{sites: '.', cmd: 'welcome', text: 'Welcome to stackexchange-quickcomment! ' +
 				'To use, simply click the "qc" link to the right of this comment box to edit your quickcomments. The format is JSON. ' +
-				'The `sites` field is a regexp that tests against the hostname (ex. "stackoverflow.com") so as to only pertain to a specific site or sites. ' +
+				'The `sites` field is a regexp that tests against the hostname (ex. "$SITEURL") so as to only pertain to a specific site or sites. ' +
 				'The `cmd` field is the command that you can type in after the prefix to access the quickcomment. ' +
 				'Finally, the text field is the text that will be inserted when you use the quickcomment. Enjoy!'}
 		]
@@ -48,7 +49,7 @@ $(document).on('focus', 'textarea[name="comment"]', function() {
 			destroyPopup();
 		} else if (e.which == 32) { // space
 			this.value = this.value.replace(new RegExp('^(.*)' + data.prefix + '.*$'), function(m, g1) { return g1; })
-				+ data.commands[parseInt(commentPopup.children().eq(commentPopupSelectionIndex).attr('data-cmdindex'))].text;
+				+ parseText(data.commands[parseInt(commentPopup.children().eq(commentPopupSelectionIndex).attr('data-cmdindex'))].text, this);
 			destroyPopup();
 		} else if (e.which == 37 || e.which == 39) { // left / right respectively
 			if (e.type == 'keydown') {
@@ -119,8 +120,11 @@ function destroyPopup() {
 	if (commentPopup) commentPopup.remove();
 }
 
-function extMatch(needle, haystack) {
-	return new RegExp(needle.split('').join('.*')).test(haystack);
+function parseText(text, commentBox) {
+	return text
+		.replace(/\$SITENAME/g, $('.site-icon.favicon').attr('title'))
+		.replace(/\$SITEURL/g, window.location.hostname)
+		.replace(/\$USERNAME/g, $(commentBox).closest('div[class="question"],div[class="answer"]').find('.post-signature:last .user-details a').text())
 }
 
 function prettyJSON(obj) {
@@ -131,6 +135,10 @@ function prettyJSON(obj) {
 		.replace(']', '\n]')
 		.replace(/:"/g, ': "')
 		.replace(/,"/g, ', "')
+}
+
+function extMatch(needle, haystack) {
+	return new RegExp(needle.split('').join('.*')).test(haystack);
 }
 
 };

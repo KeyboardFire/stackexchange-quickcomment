@@ -3,7 +3,7 @@
 // @namespace http://keyboardfire.com/
 // @license MIT
 // @description Quick SE comments for quick SE people
-// @version 1.0.1
+// @version 1.0.2
 // @match *://*.stackexchange.com/*
 // @match *://*.stackoverflow.com/*
 // @match *://*.superuser.com/*
@@ -83,12 +83,22 @@ $(document).on('click', '.comments-link', function() {
 						).append(
 							$('<td>').append($('<input>').attr({type: 'submit'}).val('Save').click(function(e){
 								e.preventDefault();
-								console.log(j = ('{' + $('textarea', tr).val() + '}'));
 								data = JSON.parse('{' + $('textarea', tr).val() + '}');
 								localStorage.__stackexchange_quickcomment_data = JSON.stringify(data);
 								tr.remove();
 							}))
 						));
+					})).append($('<span>').text(' | ').addClass('lsep'))
+					.append($('<a>').text('(auto)').click(function() {
+						$.ajax({
+							url: (window.location.origin + '/users/edit/' + $('.topbar a.profile-me').attr('href').match(/\d+/)[0]),
+							success: function(resp) {
+								var profileData = unHTMLEncode(resp.match(/&lt;!--stackexchange-quickcomment([\s\S]+?)--&gt;/)[1]);
+								data = JSON.parse('{' + profileData + '}');
+								localStorage.__stackexchange_quickcomment_data = JSON.stringify(data);
+								alert('Data successfully pulled from profile');
+							}
+						});
 					}));
 			}
 			clearInterval(intr);
@@ -135,6 +145,14 @@ function prettyJSON(obj) {
 		.replace(']', '\n]')
 		.replace(/:"/g, ': "')
 		.replace(/,"/g, ', "')
+}
+
+function unHTMLEncode(text) {
+	// todo: make this work for all texts (this is the lazy version)
+	return text
+		.replace(/&quot;/g, '"')
+		.replace(/&#39;/g, '\'')
+		.replace(/&amp;/g, '&') // this must come last
 }
 
 function extMatch(needle, haystack) {
